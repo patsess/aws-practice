@@ -38,7 +38,7 @@ if __name__ == '__main__':
         print(bucket['Name'])
 
     ######################################################################
-    # Upload final_report.csv to gid-staging
+    # Upload final_report.csv to pat-aws-practice-staging
     s3.upload_file(Bucket='pat-aws-practise-staging',
                    # Set filename and key
                    Filename='final_report.csv',
@@ -53,29 +53,29 @@ if __name__ == '__main__':
 
     ######################################################################
     # List only objects that start with '2018/final_'
-    response = s3.list_objects(Bucket='gid-staging',
+    response = s3.list_objects(Bucket='pat-aws-practice-staging',
                                Prefix='2018/final_')
 
     # Iterate over the objects
     if 'Contents' in response:
         for obj in response['Contents']:
             # Delete the object
-            s3.delete_object(Bucket='gid-staging', Key=obj['Key'])
+            s3.delete_object(Bucket='pat-aws-practice-staging', Key=obj['Key'])
 
     # Print the keys of remaining objects in the bucket
-    response = s3.list_objects(Bucket='gid-staging')
+    response = s3.list_objects(Bucket='pat-aws-practice-staging')
 
     for obj in response['Contents']:
         print(obj['Key'])
 
     ######################################################################
-    # Upload the final_report.csv to gid-staging bucket
+    # Upload the final_report.csv to pat-aws-practice-staging bucket
     s3.upload_file(
         # Complete the filename
         Filename='./final_report.csv',
         # Set the key and bucket
         Key='2019/final_report_2019_02_20.csv',
-        Bucket='gid-staging',
+        Bucket='pat-aws-practice-staging',
         # During upload, set ACL to public-read
         ExtraArgs={
             'ACL': 'public-read'})
@@ -83,18 +83,18 @@ if __name__ == '__main__':
     ######################################################################
     # List only objects that start with '2019/final_'
     response = s3.list_objects(
-        Bucket='gid-staging', Prefix='2019/final_')
+        Bucket='pat-aws-practice-staging', Prefix='2019/final_')
 
     # Iterate over the objects
     for obj in response['Contents']:
         # Give each object ACL of public-read
-        s3.put_object_acl(Bucket='gid-staging',
+        s3.put_object_acl(Bucket='pat-aws-practice-staging',
                           Key=obj['Key'],
                           ACL='public-read')
 
         # Print the Public Object URL for each object
         print("https://{}.s3.amazonaws.com/{}"
-              .format('gid-staging', obj['Key']))
+              .format('pat-aws-practice-staging', obj['Key']))
 
     ######################################################################
     # Generate presigned_url for the uploaded object
@@ -104,7 +104,8 @@ if __name__ == '__main__':
         # Set the expiration time
         ExpiresIn=3600,  # note: one hour
         # Set bucket and shareable object's name
-        Params={'Bucket': 'gid-staging', 'Key': 'final_report.csv'}
+        Params={'Bucket': 'pat-aws-practice-staging',
+                'Key': 'final_report.csv'}
     )
 
     # Print out the presigned URL
@@ -115,7 +116,8 @@ if __name__ == '__main__':
 
     for file in response['Contents']:
         # For each file in response load the object from S3
-        obj = s3.get_object(Bucket='gid-requests', Key=file['Key'])
+        obj = s3.get_object(Bucket='pat-aws-practice-requests',
+                            Key=file['Key'])
         # Load the object's StreamingBody with pandas
         obj_df = pd.read_csv(obj['Body'])
         # Append the resulting DataFrame to list
@@ -160,7 +162,7 @@ if __name__ == '__main__':
 
     # Load each object from s3
     for file in request_files:
-        s3_day_reqs = s3.get_object(Bucket='gid-requests',
+        s3_day_reqs = s3.get_object(Bucket='pat-aws-practice-requests',
                                     Key=file['Key'])
         # Read the DataFrame into pandas, append it to the list
         day_reqs = pd.read_csv(s3_day_reqs['Body'])
@@ -177,40 +179,44 @@ if __name__ == '__main__':
     agg_df.to_csv('./feb_final_report.csv')
     agg_df.to_html('./feb_final_report.html', border=0)
 
-    # Upload the generated CSV to the gid-reports bucket
+    # Upload the generated CSV to the pat-aws-practice-reports bucket
     s3.upload_file(Filename='./feb_final_report.csv',
-                   Key='2019/feb/final_report.html', Bucket='gid-reports',
+                   Key='2019/feb/final_report.html',
+                   Bucket='pat-aws-practice-reports',
                    ExtraArgs={'ACL': 'public-read'})
 
-    # Upload the generated HTML to the gid-reports bucket
+    # Upload the generated HTML to the pat-aws-practice-reports bucket
     s3.upload_file(Filename='./feb_final_report.html',
-                   Key='2019/feb/final_report.html', Bucket='gid-reports',
+                   Key='2019/feb/final_report.html',
+                   Bucket='pat-aws-practice-reports',
                    ExtraArgs={'ContentType': 'text/html',
                               'ACL': 'public-read'})
 
     ######################################################################
-    # List the gid-reports bucket objects starting with 2019/
-    objects_list = s3.list_objects(Bucket='gid-reports', Prefix='2019/')
+    # List the pat-aws-practice-reports bucket objects starting with 2019/
+    objects_list = s3.list_objects(Bucket='pat-aws-practice-reports',
+                                   Prefix='2019/')
 
     # Convert the response contents to DataFrame
     objects_df = pd.DataFrame(objects_list['Contents'])
 
     # Create a column "Link" that contains Public Object URL
-    base_url = "http://gid-reports.s3.amazonaws.com/"
+    base_url = "http://pat-aws-practice-reports.s3.amazonaws.com/"
     objects_df['Link'] = base_url + objects_df['Key']
 
     # Preview the resulting DataFrame
     objects_df.head()
 
     ######################################################################
-    # List the gid-reports bucket objects starting with 2019/
-    objects_list = s3.list_objects(Bucket='gid-reports', Prefix='2019/')
+    # List the pat-aws-practice-reports bucket objects starting with 2019/
+    objects_list = s3.list_objects(Bucket='pat-aws-practice-reports',
+                                   Prefix='2019/')
 
     # Convert the response contents to DataFrame
     objects_df = pd.DataFrame(objects_list['Contents'])
 
     # Create a column "Link" that contains Public Object URL
-    base_url = "http://gid-reports.s3.amazonaws.com/"
+    base_url = "http://pat-aws-practice-reports.s3.amazonaws.com/"
     objects_df['Link'] = base_url + objects_df['Key']
 
     # Preview the resulting DataFrame
@@ -227,7 +233,7 @@ if __name__ == '__main__':
     # Overwrite index.html key by uploading the new file
     s3.upload_file(
         Filename='./report_listing.html', Key='index.html',
-        Bucket='gid-reports',
+        Bucket='pat-aws-practice-reports',
         ExtraArgs={
             'ContentType': 'text/html',
             'ACL': 'public-read'
